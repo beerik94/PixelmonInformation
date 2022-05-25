@@ -7,17 +7,17 @@ import org.apache.logging.log4j.Logger;
 
 @ParametersAreNonnullByDefault
 public class ModDetails {
-	private static final int VersionMajor = 0;
-	private static final int VersionMinor = 3;
-	private static final int VersionRevision = 9;
+	private static final int VersionMajor = 1;
+	private static final int VersionMinor = 0;
+	private static final int VersionRevision = 0;
 
 	public static final String MOD_ID = "pixelmoninformation";
 	public static final String MOD_NAME = "PixelmonInformation";
 
 	public static final String MOD_VERSION = VersionMajor + "." + VersionMinor + "." + VersionRevision;
-	public static final String MOD_DEPENDENCIES = "required-after:minecraft@[1.12.2];required-after:forge@[14.23.5.2838,);required-after:pixelmon@[8.2.0,);after:jei;after:waila;after:theoneprobe;after:jeresources";
+	public static final String MOD_DEPENDENCIES = "required-after:minecraft@[1.12.2];required-after:forge@[14.23.5.2847,);required-after:pixelmon@[8.3.0,);after:jei;after:waila;after:theoneprobe;after:jeresources";
 
-	public static final String MOD_UPDATE_URL="https://raw.githubusercontent.com/Bletch1971/PixelmonInformation/master/8.2/updateforge.json";
+	public static final String MOD_UPDATE_URL="https://raw.githubusercontent.com/Bletch1971/PixelmonInformation/master/8.3/updateforge.json";
 			
 	public static final String MOD_SERVER_PROXY_CLASS = "bletch.pixelmoninformation.core.ModCommonProxy";
 	public static final String MOD_CLIENT_PROXY_CLASS = "bletch.pixelmoninformation.core.ModClientProxy";

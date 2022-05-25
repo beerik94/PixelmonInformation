@@ -7,14 +7,18 @@ import java.util.Map.Entry;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
+import com.pixelmonmod.pixelmon.entities.npcs.EntityIndexedNPC;
 import com.pixelmonmod.pixelmon.entities.npcs.EntityNPC;
 import com.pixelmonmod.pixelmon.entities.npcs.NPCChatting;
+import com.pixelmonmod.pixelmon.entities.npcs.NPCFisherman;
 import com.pixelmonmod.pixelmon.entities.npcs.NPCNurseJoy;
+import com.pixelmonmod.pixelmon.entities.npcs.NPCQuestGiver;
 import com.pixelmonmod.pixelmon.entities.npcs.NPCRelearner;
 import com.pixelmonmod.pixelmon.entities.npcs.NPCShopkeeper;
 import com.pixelmonmod.pixelmon.entities.npcs.NPCTrader;
 import com.pixelmonmod.pixelmon.entities.npcs.NPCTrainer;
 import com.pixelmonmod.pixelmon.entities.npcs.NPCTutor;
+import com.pixelmonmod.pixelmon.entities.npcs.registry.ServerNPCRegistry;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.BaseStats;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.EVStore;
@@ -22,6 +26,8 @@ import com.pixelmonmod.pixelmon.entities.pixelmon.stats.IVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.Level;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import com.pixelmonmod.pixelmon.enums.EnumBossMode;
+import com.pixelmonmod.pixelmon.enums.EnumGrowth;
+import com.pixelmonmod.pixelmon.enums.EnumNature;
 import com.pixelmonmod.pixelmon.enums.EnumSpecies;
 import com.pixelmonmod.pixelmon.enums.EnumType;
 import com.pixelmonmod.pixelmon.pokedex.Pokedex;
@@ -48,6 +54,9 @@ public class PixelmonEntityWaila implements IWailaEntityProvider {
 	
 	private static String NBT_TAG_EVSTORE = "pokemon_evstore";
 	private static String NBT_TAG_IVSTORE = "pokemon_ivstore";
+	private static String NBT_TAG_NATURE = "pokemon_nature";
+
+	private static String NBT_TAG_NPCNAME = "npc_name";
 	
 	@Override
     public Entity getWailaOverride(IWailaEntityAccessor accessor, IWailaConfigHandler config) {
@@ -56,6 +65,8 @@ public class PixelmonEntityWaila implements IWailaEntityProvider {
 
 	@Override
 	public List<String> getWailaHead(Entity entity, List<String> currentTip, IWailaEntityAccessor accessor, IWailaConfigHandler config) {
+		
+		NBTTagCompound tag = accessor.getNBTData();
 		
 		if (entity instanceof EntityPixelmon) {
 			EntityPixelmon pixelmon = ((EntityPixelmon)entity);
@@ -120,97 +131,47 @@ public class PixelmonEntityWaila implements IWailaEntityProvider {
 		
 		if (entity instanceof EntityNPC) {
 			String tooltip = TextFormatting.RESET.toString();
-
-			if (entity instanceof NPCNurseJoy) {
-				NPCNurseJoy npc = ((NPCNurseJoy)entity);
-				
-				//String nameKey = npc.getTextureIndex() == 1 ? "gui.nursejoy.name" : "gui.nursejohn.name";
-				//npc.setName(nameKey);
-				
-				String npcText = npc.getDisplayText();
+			
+			if (tag.hasKey(NBT_TAG_NPCNAME)) {
+				String npcText = tag.getString(NBT_TAG_NPCNAME);				
 				if (!StringUtils.isNullOrWhitespace(npcText) ) {
 					tooltip += TextFormatting.WHITE + npcText;
 				}
-			} 
+			}
 			
 			if (entity instanceof NPCTrainer) {
 				NPCTrainer npc = ((NPCTrainer)entity);
+				String npcLevel = " ";
 				
-				// get boss information
+				if (!StringUtils.isNullOrWhitespace(tooltip)) {
+					tooltip += " ";
+				}
+				
+				// get boss name
 				EnumBossMode bossMode = npc.getBossMode();
 				switch (bossMode) {
 					case Uncommon:
-						tooltip += TextFormatting.GREEN + bossMode.getLocalizedName() + " ";
+						npcLevel += TextFormatting.GREEN + bossMode.getLocalizedName() + " ";
 						break;
 					case Rare:
-						tooltip += TextFormatting.YELLOW + bossMode.getLocalizedName() + " ";
+						npcLevel += TextFormatting.YELLOW + bossMode.getLocalizedName() + " ";
 						break;
 					case Legendary:
-						tooltip += TextFormatting.RED + bossMode.getLocalizedName() + " ";
+						npcLevel += TextFormatting.RED + bossMode.getLocalizedName() + " ";
 						break;
 					case Ultimate:
-						tooltip += TextFormatting.GOLD + bossMode.getLocalizedName() + " ";
+						npcLevel += TextFormatting.GOLD + bossMode.getLocalizedName() + " ";
 						break;
 					default:
 						break;
 				}
-
-				// get trainer type
-//				BaseTrainer baseTrainer = npc.getBaseTrainer();
-//				if (!StringUtils.isNullOrWhitespace(baseTrainer.name) ) {
-//					tooltip += TextFormatting.WHITE + baseTrainer.name;	
-//				}
 				
 				// get trainer level
-				String npcLevel = npc.getSubTitleText() + " " + npc.getLvl();
+				npcLevel += npc.getSubTitleText() + " " + npc.getLvl();
+				
 				if (!StringUtils.isNullOrWhitespace(npcLevel) ) {
-					tooltip += TextFormatting.WHITE + npcLevel;	
+					tooltip += TextFormatting.WHITE + "(" + npcLevel.trim() + ")";	
 				}	
-			}
-			
-			if (entity instanceof NPCShopkeeper) {
-				NPCShopkeeper npc = ((NPCShopkeeper)entity);
-				
-				String npcText = npc.getDisplayText();
-				if (!StringUtils.isNullOrWhitespace(npcText) ) {
-					tooltip += TextFormatting.WHITE + npcText;
-				}
-			}
-							
-			if (entity instanceof NPCRelearner) {
-				NPCRelearner npc = ((NPCRelearner)entity);
-				
-				String npcText = npc.getDisplayText();
-				if (!StringUtils.isNullOrWhitespace(npcText) ) {
-					tooltip += TextFormatting.WHITE + npcText;
-				}
-			}
-			
-			if (entity instanceof NPCTrader) {
-				NPCTrader npc = ((NPCTrader)entity);
-				
-				String npcText = npc.getDisplayText();
-				if (!StringUtils.isNullOrWhitespace(npcText) ) {
-					tooltip += TextFormatting.WHITE + npcText;
-				}
-			}
-			
-			if (entity instanceof NPCTutor) {
-				NPCTutor npc = ((NPCTutor)entity);
-				
-				String npcText = npc.getDisplayText();
-				if (!StringUtils.isNullOrWhitespace(npcText) ) {
-					tooltip += TextFormatting.WHITE + npcText;
-				}
-			}
-
-			if (entity instanceof NPCChatting) {
-				NPCChatting npc = ((NPCChatting)entity);
-				
-				String npcText = npc.getDisplayText();
-				if (!StringUtils.isNullOrWhitespace(npcText) ) {
-					tooltip += TextFormatting.WHITE + npcText;
-				}
 			}
 			
 			if (!StringUtils.isNullOrWhitespace(tooltip) && !tooltip.equalsIgnoreCase(TextFormatting.RESET.toString())) {
@@ -301,7 +262,7 @@ public class PixelmonEntityWaila implements IWailaEntityProvider {
 		        int total = 0;
 	        	
 	        	for (StatsType type : statTypes) {
-	        		int value = store.get(type);
+	        		int value = store.getStat(type);
 	        		total += value;
 	        		
 	        		output2 += delimiter;
@@ -334,7 +295,7 @@ public class PixelmonEntityWaila implements IWailaEntityProvider {
 	        	int total = 0;
 	        	
 	        	for (StatsType type : statTypes) {
-	        		int value = store.get(type);
+	        		int value = store.getStat(type);
 	        		total += value;
 	        		
 	        		output2 += delimiter;
@@ -375,7 +336,49 @@ public class PixelmonEntityWaila implements IWailaEntityProvider {
 						currentTip.add(output);
 					}		        	
 		        }
-			}			
+			}
+
+			if (tag.hasKey(NBT_TAG_NATURE) && ModConfig.waila.entities.showPokemonNatureInformation) {
+				String delimiter = " ";
+				String output = TextFormatting.DARK_AQUA + TextUtils.translate("gui.pokemon.nature") + TextFormatting.WHITE;
+
+				Pokemon pokemon = pixelmon.getPokemonData();
+
+				if (pokemon != null) {
+					int natureIndex = tag.getInteger(NBT_TAG_NATURE);
+					EnumNature nature = EnumNature.getNatureFromIndex(natureIndex);
+
+					if (nature != null) {
+						output += delimiter;
+						output += nature.getLocalizedName();
+					}
+				}
+
+				if (!StringUtils.isNullOrWhitespace(output)) {
+					currentTip.add(output);
+				}
+			}
+
+			if (ModConfig.waila.entities.showPokemonGrowthInformation) {
+				// show the type information	
+		        String delimiter = " ";
+		        String output = TextFormatting.DARK_AQUA + TextUtils.translate("gui.pokemon.growth") + TextFormatting.WHITE;
+		        
+		        Pokemon pokemon = pixelmon.getPokemonData();
+
+				if (pokemon != null) {
+					EnumGrowth growth = pokemon.getGrowth();
+
+					if (growth != null) {
+						output += delimiter;
+						output += growth.getLocalizedName();
+					}		        	
+		        }
+
+				if (!StringUtils.isNullOrWhitespace(output)) {
+					currentTip.add(output);
+				}
+			}
 
 			if (ModConfig.waila.entities.showPokemonNatureInformation) {
 				String delimiter = " ";
@@ -448,7 +451,7 @@ public class PixelmonEntityWaila implements IWailaEntityProvider {
 					Pokedex pokedex = PixelmonUtils.getClientPokedex();
 					
 					if (pokedex != null) {
-						caughtStatus = pokedex.hasCaught(pokemonSpecies.getNationalPokedexInteger()) ? TextUtils.SYMBOL_GREENTICK : TextUtils.SYMBOL_REDCROSS;
+						caughtStatus = pokedex.hasCaught(pokemonSpecies) ? TextUtils.SYMBOL_GREENTICK : TextUtils.SYMBOL_REDCROSS;
 					}	
 					
 					String output = TextFormatting.DARK_AQUA + TextUtils.translate("gui.pokemon.caught") + " " + caughtStatus;
@@ -469,9 +472,6 @@ public class PixelmonEntityWaila implements IWailaEntityProvider {
 
 	@Override
 	public NBTTagCompound getNBTData(EntityPlayerMP player, Entity entity, NBTTagCompound tag, World world) {
-		if (entity != null) {
-			entity.writeToNBT(tag);
-		}
 		
 		if (entity instanceof EntityPixelmon) {
 			EntityPixelmon pixelmon = ((EntityPixelmon)entity);
@@ -485,9 +485,71 @@ public class PixelmonEntityWaila implements IWailaEntityProvider {
 				NBTTagCompound ivTag = new NBTTagCompound();
 				IVStore ivStore = pokemon.getIVs();
 				ivStore.writeToNBT(ivTag);
-				
+
+				EnumNature nature = pokemon.getNature();
+
 				tag.setTag(NBT_TAG_EVSTORE, evTag);
-				tag.setTag(NBT_TAG_IVSTORE, ivTag);				
+				tag.setTag(NBT_TAG_IVSTORE, ivTag);
+				tag.setInteger(NBT_TAG_NATURE, nature.index);
+			}
+		}
+		
+		if (entity instanceof EntityNPC) {
+			String langCode = player.language;
+			String npcName = "";
+
+			if (entity instanceof NPCFisherman) {
+				NPCFisherman entityNPC = (NPCFisherman)entity;
+				npcName = entityNPC.getDisplayText();
+			}
+
+			if (entity instanceof NPCNurseJoy) {
+				NPCNurseJoy entityNPC = (NPCNurseJoy)entity;
+				npcName = entityNPC.getDisplayText();
+			}
+
+			if (entity instanceof NPCQuestGiver) {
+				NPCQuestGiver entityNPC = (NPCQuestGiver)entity;
+				npcName = entityNPC.getName(langCode);
+			}
+
+			if (entity instanceof NPCRelearner) {
+				NPCRelearner entityNPC = (NPCRelearner)entity;
+				npcName = entityNPC.getDisplayText();
+			}
+
+			if (entity instanceof NPCShopkeeper) {
+				NPCShopkeeper entityNPC = (NPCShopkeeper)entity;
+				npcName = entityNPC.getShopkeeperName(langCode);
+			}
+
+			if (entity instanceof NPCTrader) {
+				NPCTrader entityNPC = (NPCTrader)entity;
+				npcName = entityNPC.getDisplayText();
+			}
+
+			if (entity instanceof NPCTrainer) {
+				NPCTrainer entityNPC = (NPCTrainer)entity;
+				npcName = entityNPC.getName(langCode);
+			}
+
+			if (entity instanceof NPCTutor) {
+				NPCTutor entityNPC = (NPCTutor)entity;
+				npcName = entityNPC.getDisplayText();
+			}
+
+			if (StringUtils.isNullOrWhitespace(npcName) && entity instanceof NPCChatting) {
+				NPCChatting entityNPC = (NPCChatting)entity;
+				npcName = entityNPC.getName(langCode);
+			}
+
+			if (StringUtils.isNullOrWhitespace(npcName) && entity instanceof EntityIndexedNPC) {
+				EntityIndexedNPC entityNPC = (EntityIndexedNPC)entity;
+				npcName = entityNPC.getName(langCode);
+			}
+			
+			if (!StringUtils.isNullOrWhitespace(npcName)) {
+				tag.setString(NBT_TAG_NPCNAME, npcName);
 			}
 		}
 		
